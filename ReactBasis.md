@@ -86,8 +86,208 @@
     }
 ```
 ---
-### 
+### 组件的属性
+- props  用于组件间的数据传递
+- state  用于管理组件自己内部的数据
+- props:一般用于父组件向子组件通信，在组件之间通信使用
+- state:一般用于组件内部的状态维护，更新组建内部的数据，状态，更新子组件的props等
 
+- 将父组件的数据传递给子组件（基本的数据传递）
+
+```
+    index.js
+    
+    class App extends Component {
+        render(){
+            var data = {
+                "name": "zj135808",
+                "id": 19897852,
+                "avatar_url": "https://avatars.githubusercontent.com/u/19897852?v=3"
+            };
+            return (
+                 <Profile name={data.name} id={data.id} url={data.avatar_url}/>
+            )
+        }
+    }
+
+
+    Profiles.js
+    
+    export default class Profile extends Component{
+        render (){
+            let data = this.props;
+            return (
+                <div>
+                    <img src={this.props.url} alt=""/>
+                    <h1>{this.props.name}</h1>
+                    <h2>{this.props.id}</h2>
+                </div>
+            )
+        }
+    }
+```
+- 为子组件设置传递数据的类型
+- 注：需要将PropTypes进行引入
+
+```
+    import React, {Component,PropTypes} from 'react'
+    
+    Profile.propTypes = {
+        url:PropTypes.string,
+        name:PropTypes.string,
+        id:PropTypes.number
+    }
+```
+- 为子组件设置默认参数
+
+```
+    Profile.defaultProps = {      // 用于定义默认参数
+        name:'xxx',
+        id:0,
+        url:''
+    };
+
+```
+---
+### 组件的状态
+- 组件的状态 state 用于管理组件内部的数据
+- 两个注意点如下：
+    - 在constructor中必须要有super()，这里是继承，如果没有的话constructor中的this不是指向当前组件，并且会有报错
+    - 在updateData函数中如果不用箭头函数的话需要改变其this指向，如果使用了箭头函数就不用，但是使用箭头函数的话需要安装babel-preset-stage-0这个模块
+
+```
+    class App extends Component {
+        constructor (){
+            super();
+            this.state = {
+                val:'DefaultValue'
+            }
+        }
+        updateData = (e) => {
+            this.setState({
+                val:e.target.value
+            })
+        }
+        render(){
+            return (
+                <div>
+                    <input type="text" onChange={this.updateData}/>
+                    <h1>{this.state.val}</h1>
+                </div>
+            )
+        }
+    }
+```
+---
+### 使用refs操作DOM
+- ref是React中的一个属性，当render函数返回某个组件的实例时，可以给render中的某个虚拟DOM节点添加一个ref属性，通过ref属性，我们还可以拿到该虚拟DOM对应的真实DOM节点
+- 有两种方式可以拿到真实的DOM节点
+
+```
+    <input type="text" ref="username" />  
+       
+    var usernameDOM = this.refs.username.getDOMNode();  
+    var usernameDOM = React.findDOMNode(this.refs.username);  
+```
+- 实例。实现功能为在input框中输入对应的数字，就会点亮该数字对应的input框
+```
+    class App extends Component {
+    
+        changeHandle = (e) => {
+            let index = Number(e.target.value);
+            if(!index){
+                return false;
+            }
+            if(index<1 || index>11){
+                return false;
+            }
+            var refsName = 'input'+index;
+            let curNode = findDOMNode(this.refs[refsName]);
+            console.log(refsName,curNode);
+            curNode.focus()
+        }
+    
+        render(){
+            let inputs = [];
+            for(let i=1;i<=10;i++){
+                inputs.push(<div key={i}><li><input type="text"  ref={"input" + i}/></li><br/></div>)
+            }
+    
+            return (
+                <div>
+                    <label htmlFor="input" >在这里输入下面任意输入框的索引，光标会自动定位到输入框内：</label>
+                    <input type="text" id="input" onChange={this.changeHandle}/>
+                    <ol>
+                        {inputs}
+                    </ol>
+                </div>
+            )
+        }
+    }
+```
+---
+### 获取子组件
+- this.props.children    和   React.Children
+- React.Children 是一个对象，这个对象中有count、forEach、map、only、toArray等方法
+- this.props.children 是当前组件下的子元素，可以获取到子元素，并对其进行相应处理
+- 注：  Chidren需要进行一下模块引入
+
+```
+    class App extends Component {
+    
+        render(){
+            return (
+                <div>
+                    <NodeList>
+                        <a href="http://www.baidu.com">BaiDu</a>
+                        <a href="http://www.qq.com">QQ</a>
+                    </NodeList>
+                </div>
+            )
+        }
+    }
+    class NodeList extends Component{
+        render (){
+            let liList = Children.map(this.props.children,(item) => {
+                return  <li>{item}</li>
+            })
+            return (
+                <ul>
+                    {liList}
+                </ul>
+            )
+        }
+    }
+```
+---
+### 理解React中的this指针
+```
+    class App extends Component{
+        constructor() {
+            super();  // 继承，如果没有 super() 的话，这里的this不是App，程序会报错
+            // 初始的state  和  defaultProps的性质是一样的
+            this.state = {name: 'react course'};
+            // this.update = this.update.bind(this);
+        }
+        update = (e) => {  // 使用箭头函数的话需要安装babel-preset-stage-0这个插件
+            console.log(this);
+            //  改变 state 的值
+            this.setState({
+                name:e.target.value
+            })
+        }
+        render(){
+          return (
+              <div>
+                  <input type="text" onChange={this.update}/>
+                  <h1>Hello, {this.state.name}</h1>
+              </div>
+          )
+        }
+    }
+```
+---
+### 
 
 
 
