@@ -287,9 +287,174 @@
     }
 ```
 ---
-### 
+###  reatc的生命周期
+![](img/react-component-life.png)
+- <a href="http://www.codeceo.com/article/reactjs-life-circle-event.html">ReactJS 生命周期、数据流与事件</a>
+- 首次实例化：
 
+```
+    getDefaultProps
+    getInitialState
+    componentWillMount
+    render
+    componentDidMount
+```
+- 存在期
 
+```
+    componentWillReceiveProps
+    shouldComponentUpdate
+    componentWillUpdate
+    render
+    componentDidUpdate
+```
+- 销毁期
+
+```
+    componentWillUnmount
+```
+- React的生命周期之创建
+
+```
+    import React, {Component,Children} from 'react';
+    import ReactDom, {render,findDOMNode} from 'react-dom'
+    
+    class App extends Component{
+        constructor(){
+            super()
+            this.state = {
+                val:0
+            }
+        }
+        componentWillMount(){
+            console.log('Will Mount');
+        }
+        update = (e) => {
+            this.setState({
+                val:this.state.val+1
+            })
+        }
+        render(){
+            console.log('render~~')
+            return (
+                <button onClick={this.update}>{this.state.val}</button>
+            )
+        }
+        componentDidMount(){
+            console.log('did mount~')
+        }
+    }
+    
+    render(<App />,document.getElementById('app'))
+
+```
+- React的生命周期之销毁
+
+```
+    index.js
+
+    import React, {Component,Children} from 'react';
+    import ReactDom, {render,findDOMNode} from 'react-dom'
+    import Handler from './components/Handler.js'
+    
+    class App extends Component{
+        render(){
+            return <Handler />
+        }
+    }
+    
+    render(<App />,document.getElementById('app'))
+    
+    
+    
+    Messgae.js
+    
+    import React,{ Component } from 'react'
+    
+    export default class Message extends Component{
+        componentWillReceiveProps(nextProps){
+            console.log('receive props');
+        }
+        shouldComponentUpdate(nextProps,nextState){
+            console.log('shouldComponentUpdate')
+            //return false;  // 如果为false那么整个组件如果更新的话就不再进行渲染
+            return true
+        }
+        componentWillUpdate(){
+            console.log('componentWillUpdate')
+        }
+        componentDidUpdate(){
+            console.log('componentDidUpdate')
+    
+        }
+        componentWillMount(){
+            console.log('Will Mount');
+        }
+        render(){
+            console.log(this.props);
+            console.log('render~~~')
+            return (
+                <span>{this.props.val}</span>
+            )
+        }
+        componentDidMount(){
+            console.log('did mount~')
+        }
+        componentWillUnmount(){
+            console.log('componentWillUnMount')
+        }
+    }
+    
+    
+    
+    Handler.js
+    
+    import React, { Component } from 'react'
+    import ReactDOM from 'react-dom'
+    
+    import Message from './Message.js'
+    
+    export default class Handler extends Component{
+        constructor(){
+            super()
+            this.state = {
+                val:0,
+                destoryed:false
+            }
+        }
+        update = (e) => {
+            this.setState({
+                val:this.state.val+1
+            })
+        }
+        destory = (e) => {
+            this.setState({
+                destoryed:true
+            })
+        }
+        remove = () => {
+            // remove method2
+            // 从根元素移除整个DOM
+            ReactDOM.unmountComponentAtNode(document.getElementById('app'));
+        }
+        render(){
+            // remove method1
+            // 不对组件进行渲染
+            if(this.state.destoryed){
+                return null
+            }
+    
+            return (
+                <div id="container">
+                    <Message val={this.state.val}/>
+                    <button onClick={this.update}>{this.state.val}</button>
+                    <button onClick={this.destory}>remove Component</button>
+                </div>
+            )
+        }
+    }
+
+```
 
 
 
